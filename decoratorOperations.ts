@@ -2,12 +2,11 @@ import {
   Decorator,
   MethodDeclaration,
   Node,
-  SourceFile,
   Symbol,
 } from 'ts-morph';
+import {getConfig} from "./configOperations";
 
-import config from './config.json' assert { type: 'json' };
-
+const config = getConfig();
 const onlyFirstLetterCapitalRegex = new RegExp('^[A-Z][a-z]*(?:\\s[a-z]*)*$');
 
 export function methodHasInformationDecorator(
@@ -61,7 +60,7 @@ export function checkApiPropertyDecorator(decorator: Decorator, field: Symbol) {
 
 function checkApiPropertyDesc(
   description: any,
-  field: symbol,
+  field: Symbol,
   decorator: Decorator,
 ) {
   const lineInfo = decorator
@@ -89,7 +88,7 @@ function checkApiPropertyDesc(
 
 function checkApiPropertyExample(
   example: any,
-  field: symbol,
+  field: Symbol,
   decorator: Decorator,
 ) {
   const lineInfo = decorator
@@ -106,7 +105,7 @@ function checkApiPropertyExample(
   }
 }
 
-function checkApiPropertyType(_type: any, field: symbol, decorator: Decorator) {
+function checkApiPropertyType(_type: any, field: Symbol, decorator: Decorator) {
   const lineInfo = decorator
     .getSourceFile()
     .getLineAndColumnAtPos(decorator.getStartLinePos());
