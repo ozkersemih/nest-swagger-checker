@@ -21,7 +21,7 @@ export function checkMethodParams(method: MethodDeclaration) {
 function checkMethodParam(methodParam: ParameterDeclaration) {
   if (isComplexParam(methodParam) && hasBodyOrQueryDecorator(methodParam)) {
     const fieldsOfMethodParam = getFieldsOfParam(methodParam);
-    fieldsOfMethodParam.map((field) => {
+    fieldsOfMethodParam?.map((field) => {
       checkField(field);
     });
   }
@@ -29,7 +29,7 @@ function checkMethodParam(methodParam: ParameterDeclaration) {
 
 function checkPropertyParam(param: PropertyDeclaration | PropertySignature) {
   const fieldsOfProperty = getFieldsOfParam(param);
-  fieldsOfProperty.map((field) => {
+  fieldsOfProperty?.map((field) => {
     checkField(field);
   });
 }
@@ -44,23 +44,23 @@ function checkField(field: Symbol) {
     isComplexType(propertyDeclaration.getType()) &&
     !isEnumType(propertyDeclaration.getType())
   ) {
-    checkPropertyParam(propertyDeclaration);
+    checkPropertyParam(propertyDeclaration as PropertyDeclaration);
   }
 
   const ApiPropertyDecorator = getDecoratorOfField(field, 'ApiProperty');
   if (!ApiPropertyDecorator) {
-    logNoApiProperty(propertyDeclaration);
+    logNoApiProperty(propertyDeclaration as PropertyDeclaration);
     return;
   }
   checkApiPropertyDecorator(ApiPropertyDecorator, field);
 }
 
 function getDecoratorOfField(propertyField: Symbol, decName: string) {
-  let decorator: Decorator;
+  let decorator: Decorator | undefined;
   propertyField.getDeclarations().map((declaration) => {
     if (Node.isPropertyDeclaration(declaration)) {
       if (declaration.getDecorator(decName)) {
-        decorator = declaration.getDecorator(decName);
+        decorator = declaration.getDecorator(decName)!;
       }
     }
   });
@@ -76,7 +76,7 @@ function isComplexParam(param: ParameterDeclaration) {
 
 function isComplexType(type: Type) {
   if (type.isArray()) {
-    if (type.getArrayElementType().getSymbol()) {
+    if (type.getArrayElementType()?.getSymbol()) {
       return true;
     }
   } else if (type.getSymbol()) {
@@ -89,7 +89,7 @@ function isEnumType(type: Type) {
   let isEnum = false;
   type
     .getSymbol()
-    .getDeclarations()
+    ?.getDeclarations()
     .map((d) => {
       if (d.getKindName().includes('Enum')) {
         isEnum = true;
@@ -112,7 +112,7 @@ function getFieldsOfParam(
   param: ParameterDeclaration | PropertyDeclaration | PropertySignature,
 ) {
   if (param.getType().isArray()) {
-    return param.getType().getArrayElementType().getProperties();
+    return param.getType().getArrayElementType()?.getProperties();
   }
   return param.getType().getProperties();
 }
