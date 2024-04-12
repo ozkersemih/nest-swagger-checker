@@ -1,8 +1,7 @@
 import { Project } from 'ts-morph';
 import { getControllerFiles } from './fileOperations';
-import { checkMethodParams } from './methodOperations';
 import { getConfig } from './configOperations';
-import { checkEndpointInformations } from './endpointOperations';
+import {checkEndpointInformations, checkEndpointPayload} from './endpointOperations';
 import * as path from "path";
 
 const config = getConfig();
@@ -27,13 +26,15 @@ function main() {
     file.getClasses().forEach((clazz) => {
       clazz.getMethods().forEach((method) => {
 
-        if (shouldCheckEndpointPayload) {
-          checkMethodParams(method);
-        }
-
         if (shouldCheckEndpointInformations) {
           checkEndpointInformations(method);
         }
+
+        if (shouldCheckEndpointPayload) {
+            checkEndpointPayload(method);
+        }
+
+
 
         // endpointHasBasicApiResponse();
         // does decorators include ApiResponse for at least
