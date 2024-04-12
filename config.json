@@ -4,6 +4,11 @@
       "pathPattern": "src/influencer-advertisement/InfluencerAdvertisementController.ts"
     },
     "endpoint": {
+      "summary": {
+        "check": true,
+        "checkEmpty": true,
+        "pattern": null
+      },
       "description": {
         "check": true,
         "checkEmpty": true,
