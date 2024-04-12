@@ -6,6 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "nest-swagger-checker": "./cli.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ozkersemih/nest-swagger-checker.git"
@@ -19,5 +22,8 @@
   "dependencies": {
     "ts-morph": "^22.0.0",
     "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7"
   }
 }
