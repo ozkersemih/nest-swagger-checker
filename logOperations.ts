@@ -1,7 +1,8 @@
 import {
+  Decorator,
   MethodDeclaration,
   PropertyDeclaration,
-  PropertySignature,
+  Symbol,
   SourceFile,
 } from 'ts-morph';
 
@@ -62,4 +63,31 @@ export function logEndpointEmptyDescription(
     `file://${file.getFilePath()}:${lineInfo.line}:${lineInfo.column} ` +
     'Description of endpoint is empty';
   console.log(logText);
+}
+
+export function logApiPropertyNullField(apiPropertyDecorator: Decorator, apiPropertyFieldName: string, field: Symbol){
+  const lineInfo = apiPropertyDecorator
+      .getSourceFile()
+      .getLineAndColumnAtPos(apiPropertyDecorator.getStartLinePos());
+
+  console.log(
+      `file://${apiPropertyDecorator.getSourceFile().getFilePath()}:${lineInfo.line}:${
+          lineInfo.column
+      }`,
+      `The '${field.getName()}' field does not have ${apiPropertyFieldName}`,
+  );
+}
+
+export function logApiPropertyNotMatchField(apiPropertyDecorator: Decorator, apiPropertyFieldName: string, field: Symbol){
+  const lineInfo = apiPropertyDecorator
+      .getSourceFile()
+      .getLineAndColumnAtPos(apiPropertyDecorator.getStartLinePos());
+
+
+  console.log(
+      `file://${apiPropertyDecorator.getSourceFile().getFilePath()}:${lineInfo.line}:${
+          lineInfo.column
+      }`,
+      `${apiPropertyFieldName} value of '${field.getName()}' field did not match given pattern' `,
+  );
 }

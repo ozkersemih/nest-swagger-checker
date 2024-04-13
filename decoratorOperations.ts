@@ -5,9 +5,9 @@ import {
   Symbol,
 } from 'ts-morph';
 import {getConfig} from "./configOperations";
+import { logApiPropertyNotMatchField, logApiPropertyNullField} from "./logOperations";
 
 const config = getConfig();
-const onlyFirstLetterCapitalRegex = new RegExp('^[A-Z][a-z]*(?:\\s[a-z]*)*$');
 
 export function methodHasInformationDecorator(
   method: MethodDeclaration,
@@ -63,26 +63,14 @@ function checkApiPropertyDesc(
   field: Symbol,
   decorator: Decorator,
 ) {
-  const lineInfo = decorator
-    .getSourceFile()
-    .getLineAndColumnAtPos(decorator.getStartLinePos());
-
-  if (!description) {
-    console.log(
-      `file://${decorator.getSourceFile().getFilePath()}:${lineInfo.line}:${
-        lineInfo.column
-      }`,
-      `The '${field.getName()}' field does not have description`,
-    );
-    return;
+  if (isFieldOfDecoratorNull('description',decorator)){
+    logApiPropertyNullField(decorator,'description',field);
   }
-  if (!onlyFirstLetterCapitalRegex.test(description)) {
-    console.log(
-      `file://${decorator.getSourceFile().getFilePath()}:${lineInfo.line}:${
-        lineInfo.column
-      }`,
-      `The '${field.getName()}' fields example value did not match given pattern`,
-    );
+
+  const pattern = config.scopes.endpoint.payload.description.pattern;
+
+  if (pattern && !isFieldOfDecoratorMatch('description',decorator,pattern)){
+    logApiPropertyNotMatchField(decorator,'description',field)
   }
 }
 
@@ -91,32 +79,14 @@ function checkApiPropertyExample(
   field: Symbol,
   decorator: Decorator,
 ) {
-  const lineInfo = decorator
-    .getSourceFile()
-    .getLineAndColumnAtPos(decorator.getStartLinePos());
-
-  if (!example) {
-    console.log(
-      `file://${decorator.getSourceFile().getFilePath()}:${lineInfo.line}:${
-        lineInfo.column
-      }`,
-      `The '${field.getName()}' field does not have example value`,
-    );
+  if (isFieldOfDecoratorNull('example',decorator)){
+    logApiPropertyNullField(decorator,'example',field)
   }
 }
 
 function checkApiPropertyType(_type: any, field: Symbol, decorator: Decorator) {
-  const lineInfo = decorator
-    .getSourceFile()
-    .getLineAndColumnAtPos(decorator.getStartLinePos());
-
-  if (!_type) {
-    console.log(
-      `file://${decorator.getSourceFile().getFilePath()}:${lineInfo.line}:${
-        lineInfo.column
-      }`,
-      `The '${field.getName()}' field does not have type value`,
-    );
+  if (isFieldOfDecoratorNull('type',decorator)){
+    logApiPropertyNullField(decorator,'type',field)
   }
 }
 

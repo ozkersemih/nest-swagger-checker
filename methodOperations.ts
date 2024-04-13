@@ -25,10 +25,12 @@ function checkPropertyParam(param: PropertyDeclaration) {
 
 function checkField(field: Symbol) {
   const propertyDeclaration = getPropertyDeclarationOfField(field);
+
   const doesFieldIsClassProperty = propertyDeclaration !== undefined;
   if (!doesFieldIsClassProperty) {
     return;
   }
+
   if (
     isComplexType(propertyDeclaration.getType()) &&
     !isEnumType(propertyDeclaration.getType())
