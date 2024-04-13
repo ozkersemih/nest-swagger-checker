@@ -2,7 +2,6 @@ import { Decorator, MethodDeclaration } from 'ts-morph';
 import {
   isFieldOfDecoratorEmpty,
   isFieldOfDecoratorMatch,
-  methodHasInformationDecorator,
 } from './decoratorOperations';
 import {
   logEndpointEmptyDescription,
@@ -12,17 +11,17 @@ import {
   logNoApiOperation,
 } from './logOperations';
 import { getConfig } from './configOperations';
-import {checkMethodParam} from "./methodOperations";
+import {checkMethodParam, hasMethodApiOperationDecorator} from "./methodOperations";
 import {hasBodyOrQueryDecorator, hasClassType, isComplexParam} from "./parameterOperations";
 
 export function checkEndpointInformations(method: MethodDeclaration) {
   const decorators = method.getDecorators();
 
-  if (!methodHasInformationDecorator(method, decorators)) {
+  if (!hasMethodApiOperationDecorator(method, decorators)) {
     logNoApiOperation(method.getSourceFile(), method);
   }
 
-  if (methodHasInformationDecorator(method, decorators)) {
+  if (hasMethodApiOperationDecorator(method, decorators)) {
     checkInformationProps(method);
   }
 }

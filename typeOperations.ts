@@ -1,4 +1,4 @@
-import {Type} from "ts-morph";
+import {Symbol, Type} from "ts-morph";
 
 export function isComplexType(type: Type) {
     if (type.isArray()) {
@@ -22,4 +22,11 @@ export function isEnumType(type: Type) {
             }
         });
     return isEnum;
+}
+
+export function getPropertiesOfType(_type: Type): Symbol[]{
+    if (_type.isArray()){
+        _type.getArrayElementType()?.getProperties();
+    }
+    return _type.getProperties();
 }

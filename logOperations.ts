@@ -20,7 +20,7 @@ export function logNoApiProperty(declaration: PropertyDeclaration) {
   const propName = declaration.getName();
   const logText =
     `file://${file.getFilePath()}:${lineInfo.line}:${lineInfo.column} ` +
-    `The '${propName}' field does not have ApiProperty tag to describe informations`;
+    `The '${propName}' field does not have ApiProperty tag to describe information's`;
   console.log(logText);
   return logText;
 }
@@ -88,6 +88,6 @@ export function logApiPropertyNotMatchField(apiPropertyDecorator: Decorator, api
       `file://${apiPropertyDecorator.getSourceFile().getFilePath()}:${lineInfo.line}:${
           lineInfo.column
       }`,
-      `${apiPropertyFieldName} value of '${field.getName()}' field did not match given pattern' `,
+      `${apiPropertyFieldName} value of '${field.getName()}' field did not match given pattern`,
   );
 }
