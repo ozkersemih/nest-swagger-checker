@@ -1,10 +1,8 @@
 import {Symbol, Node, Decorator, PropertyDeclaration} from "ts-morph";
 import {logApiPropertyNotMatchField, logApiPropertyNullField, logNoApiProperty} from "./logOperations";
-import {getConfig} from "./configOperations";
+import {getConfigField} from "./configOperations";
 import {getPropertiesOfDecorator, isFieldOfDecoratorMatch, isFieldOfDecoratorNull} from "./decoratorOperations";
 import {getPropertiesOfType, isComplexType, isEnumType} from "./typeOperations";
-
-const config = getConfig();
 
 export function getPropertyDeclarationOfProperty(property: Symbol) {
     return property
@@ -56,9 +54,9 @@ export function checkApiPropertyDecoratorOfProperty(property: Symbol){
 }
 
 function checkApiPropertyDecoratorValuesOfProperty(property: Symbol, apiPropertyDecorator: Decorator){
-    const checkDesc = config.scopes.endpoint.payload.description.check;
-    const checkExample = config.scopes.endpoint.payload.example.check;
-    const checkType = config.scopes.endpoint.payload.type.check;
+    const checkDesc = getConfigField('scopes.endpoint.payload.description.check');
+    const checkExample = getConfigField('scopes.endpoint.payload.example.check');
+    const checkType = getConfigField('scopes.endpoint.payload.type.check');
 
     const decoratorProperties = getPropertiesOfDecorator(apiPropertyDecorator);
 
@@ -84,7 +82,7 @@ function checkDescriptionOfProperty(
         logApiPropertyNullField(decorator,'description',field);
     }
 
-    const pattern = config.scopes.endpoint.payload.description.pattern;
+    const pattern = getConfigField('scopes.endpoint.payload.description.pattern');
 
     if (pattern && !isFieldOfDecoratorMatch('description',decorator,pattern)){
         logApiPropertyNotMatchField(decorator,'description',field)

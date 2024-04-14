@@ -10,9 +10,9 @@ import {
   logInvalidEndpointSummary,
   logNoApiOperation,
 } from './logOperations';
-import { getConfig } from './configOperations';
-import {checkMethodParam, hasMethodApiOperationDecorator} from "./methodOperations";
-import {hasBodyOrQueryDecorator, hasClassType, isComplexParam} from "./parameterOperations";
+import {getConfigField} from './configOperations';
+import {checkApiParamParameterOfMethod, checkMethodParam, hasMethodApiOperationDecorator} from "./methodOperations";
+import {hasBodyOrQueryDecorator, hasClassType, hasParamDecorator, isComplexParam} from "./parameterOperations";
 
 export function checkEndpointInformations(method: MethodDeclaration) {
   const decorators = method.getDecorators();
@@ -28,12 +28,21 @@ export function checkEndpointInformations(method: MethodDeclaration) {
 
 
 export function checkEndpointPayload(endpointMethod: MethodDeclaration){
-  const payloadParams = endpointMethod.getParameters().filter(parameter => {
+  const payloadParametersOfMethod = endpointMethod.getParameters().filter(parameter => {
     if (hasBodyOrQueryDecorator(parameter) && isComplexParam(parameter) && hasClassType(parameter)){
       return parameter;
     }
   })
-  payloadParams.map(payloadParam => checkMethodParam(payloadParam));
+  payloadParametersOfMethod.map(payloadParam => checkMethodParam(payloadParam));
+}
+
+export function checkEndpointParam(endpointMethod: MethodDeclaration){
+  const apiParamParametersOfMethod = endpointMethod.getParameters().filter(methodParameter => {
+    if (hasParamDecorator(methodParameter)){
+      return methodParameter;
+    }
+  })
+  apiParamParametersOfMethod.map(apiParamParameter => checkApiParamParameterOfMethod(apiParamParameter,endpointMethod))
 }
 
 function checkInformationProps(method: MethodDeclaration) {
@@ -44,9 +53,8 @@ function checkInformationProps(method: MethodDeclaration) {
 }
 
 function checkSummary(apiOperationDec: Decorator) {
-  const config = getConfig();
-  const shouldCheckSummaryEmptiness = config.scopes.endpoint.summary.checkEmpty;
-  const shouldCheckSummaryPattern = config.scopes.endpoint.summary.pattern
+  const shouldCheckSummaryEmptiness =  getConfigField('scopes.endpoint.summary.checkEmpty');
+  const shouldCheckSummaryPattern = getConfigField('scopes.endpoint.summary.pattern')
     ? true
     : false;
 
@@ -61,7 +69,7 @@ function checkSummary(apiOperationDec: Decorator) {
 
   if (shouldCheckSummaryPattern) {
     const patternRegex = new RegExp(
-      `${config.scopes.endpoint.summary.pattern}`,
+      `${getConfigField('scopes.endpoint.summary.pattern')}`,
     );
     if (!isFieldOfDecoratorMatch('summary', apiOperationDec, patternRegex)) {
       logInvalidEndpointSummary(lineInfo, sourceFile);
@@ -70,10 +78,8 @@ function checkSummary(apiOperationDec: Decorator) {
 }
 
 function checkDescription(apiOperationDec: Decorator) {
-  const config = getConfig();
-  const shouldCheckDescriptionEmptiness =
-    config.scopes.endpoint.description.checkEmpty;
-  const shouldCheckDescPattern = config.scopes.endpoint.description.pattern
+  const shouldCheckDescriptionEmptiness = getConfigField('scopes.endpoint.description.checkEmpty');
+  const shouldCheckDescPattern = getConfigField('scopes.endpoint.description.pattern')
     ? true
     : false;
 
@@ -88,7 +94,7 @@ function checkDescription(apiOperationDec: Decorator) {
 
   if (shouldCheckDescPattern) {
     const patternRegex = new RegExp(
-      `${config.scopes.endpoint.description.pattern}`,
+      `${getConfigField('scopes.endpoint.description.pattern')}`,
     );
     if (
       !isFieldOfDecoratorMatch('description', apiOperationDec, patternRegex)
