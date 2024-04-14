@@ -10,6 +10,15 @@ export function hasBodyOrQueryDecorator(param: ParameterDeclaration) {
     return false;
 }
 
+export function hasParamDecorator(param: ParameterDeclaration) {
+    if (
+        Node.isDecorator(param.getDecorator('Param'))
+    ) {
+        return true;
+    }
+    return false;
+}
+
 export function isComplexParam(param: ParameterDeclaration) {
     if (param.getType().getSymbol()) {
         return true;

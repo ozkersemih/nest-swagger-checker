@@ -3,7 +3,7 @@ import {
   MethodDeclaration,
   PropertyDeclaration,
   Symbol,
-  SourceFile,
+  SourceFile, ParameterDeclaration,
 } from 'ts-morph';
 
 export function logNoApiOperation(file: SourceFile, method: MethodDeclaration) {
@@ -90,4 +90,18 @@ export function logApiPropertyNotMatchField(apiPropertyDecorator: Decorator, api
       }`,
       `${apiPropertyFieldName} value of '${field.getName()}' field did not match given pattern`,
   );
+}
+
+export function logNoApiParamDecorator(method: MethodDeclaration){
+  const lineInfo = method.getSourceFile().getLineAndColumnAtPos(method.getStartLinePos());
+  const filePath = method.getSourceFile().getFilePath();
+
+  console.log(`file://${filePath}:${lineInfo.line}:${lineInfo.column}`,`'${method.getName()}' method does not have ApiParam decorator but it has parameter with @Param decorator`);
+}
+
+export function logNoMatchedApiParamDecorator(method: MethodDeclaration, apiParamOfMethod: ParameterDeclaration){
+  const lineInfo = method.getSourceFile().getLineAndColumnAtPos(method.getStartLinePos());
+  const filePath = method.getSourceFile().getFilePath();
+
+  console.log(`file://${filePath}:${lineInfo.line}:${lineInfo.column}`,`'${method.getName()}' method does not have ApiParam decorator that matched with '${apiParamOfMethod.getName()}' param`);
 }
