@@ -1,0 +1,42 @@
+{
+  "scopes": {
+    "file": {
+      "pathPattern": "src/**/*.ts"
+    },
+    "endpoint": {
+      "summary": {
+        "check": true,
+        "checkEmpty": true,
+        "pattern": null
+      },
+      "description": {
+        "check": true,
+        "checkEmpty": true,
+        "pattern": null
+      },
+      "payload": {
+        "check": true,
+        "description": {
+          "check": true,
+          "pattern": "^[A-Z][a-z]*(?:\\s[a-z]*)*$"
+        },
+        "example": {
+          "check": false
+        },
+        "type": {
+          "check": false
+        }
+      },
+      "params": {
+        "check": true,
+        "description": {
+          "check": true,
+          "pattern": "^[A-Z][a-z]*(?:\\s[a-z]*)*$"
+        },
+        "example": {
+          "check": true
+        }
+      }
+    }
+  }
+}
