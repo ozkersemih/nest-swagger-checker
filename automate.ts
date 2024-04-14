@@ -1,20 +1,15 @@
 import { Project } from 'ts-morph';
 import { getControllerFiles } from './fileOperations';
-import { getConfig } from './configOperations';
-import {checkEndpointInformations, checkEndpointPayload} from './endpointOperations';
+import {getConfigField} from './configOperations';
+import {checkEndpointInformations, checkEndpointParam, checkEndpointPayload} from './endpointOperations';
 import * as path from "path";
 
-const config = getConfig();
-const FILE_PATH_PATTERN = process.argv[2] ? `${path.resolve('./')}/${process.argv[2]}` : `${path.resolve('./')}/${config.scopes.file.pathPattern}`;
+const FILE_PATH_PATTERN = process.argv[2] ? `${path.resolve('./')}/${process.argv[2]}` : `${path.resolve('./')}/${getConfigField('scopes.file.pathPattern')}`;
 
 
-const shouldCheckEndpointInformations =
-  config.scopes.endpoint.description.check;
-const checkEndpointInformationsEmpty =
-  config.scopes.endpoint.description.checkEmpty;
-const endpointInformationPattern = config.scopes.endpoint.description.pattern;
-
-const shouldCheckEndpointPayload = config.scopes.endpoint.payload.check;
+const shouldCheckEndpointInformations = getConfigField('scopes.endpoint.description.check');
+const shouldCheckEndpointPayload = getConfigField('scopes.endpoint.payload.check');
+const shouldCheckEndpointApiParam = getConfigField('scopes.endpoint.params.check');
 
 function main() {
   const project = new Project();
@@ -34,7 +29,9 @@ function main() {
             checkEndpointPayload(method);
         }
 
-
+        if (shouldCheckEndpointApiParam){
+          checkEndpointParam(method);
+        }
 
         // endpointHasBasicApiResponse();
         // does decorators include ApiResponse for at least
