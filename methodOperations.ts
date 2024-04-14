@@ -7,8 +7,14 @@ import {
   checkProperty,
 } from "./propertyOperations";
 import {getPropertiesOfType} from "./typeOperations";
-import {getPropertiesOfDecorator} from "./decoratorOperations";
-import {logNoApiParamDecorator, logNoMatchedApiParamDecorator} from "./logOperations";
+import {getPropertiesOfDecorator, isFieldOfDecoratorMatch, isFieldOfDecoratorNull} from "./decoratorOperations";
+import {
+  logApiParamDecoratorNotMatchedField,
+  logApiParamDecoratorNullField,
+  logNoApiParamDecorator,
+  logNoMatchedApiParamDecorator
+} from "./logOperations";
+import {getConfigField} from "./configOperations";
 
 export function checkMethodParam(methodParam: ParameterDeclaration) {
   const propertiesOfMethodParam = getPropertiesOfType(methodParam.getType());
@@ -24,6 +30,23 @@ export function checkApiParamParameterOfMethod(apiParamOfMethod: ParameterDeclar
 
   if (!hasMethodApiParamDecoratorForApiParam(method,apiParamOfMethod)){
     logNoMatchedApiParamDecorator(method,apiParamOfMethod);
+  }
+
+  const matchedApiParamDecorator = getMatchedApiParamDecorator(method.getDecorators().filter(decorator => decorator.getName() === 'ApiParam'),apiParamOfMethod);
+
+  const shouldCheckParamDescription = getConfigField("scopes.endpoint.params.description.check");
+  if (shouldCheckParamDescription && isFieldOfDecoratorNull('description',matchedApiParamDecorator)){
+    logApiParamDecoratorNullField(matchedApiParamDecorator,apiParamOfMethod,'description');
+  }
+
+  const paramDescriptionPattern = getConfigField("scopes.endpoint.params.description.pattern");
+  if (paramDescriptionPattern && !isFieldOfDecoratorMatch('description',matchedApiParamDecorator,paramDescriptionPattern)){
+    logApiParamDecoratorNotMatchedField(matchedApiParamDecorator,apiParamOfMethod,'description');
+  }
+
+  const shouldCheckParamExample = getConfigField("scopes.endpoint.params.example.check");
+  if (shouldCheckParamExample && isFieldOfDecoratorNull('example',matchedApiParamDecorator)){
+    logApiParamDecoratorNullField(matchedApiParamDecorator,apiParamOfMethod,'example');
   }
 }
 
@@ -55,6 +78,13 @@ export function hasMethodApiParamDecoratorForApiParam(
     return false;
   }
 
+  const matched = getMatchedApiParamDecorator(apiParamDecorators,apiParamParameter);
+
+  if (matched) return true;
+  return false;
+}
+
+function getMatchedApiParamDecorator(apiParamDecorators: Decorator[],apiParamParameter: ParameterDeclaration){
   const matched = apiParamDecorators.filter((apiParamDecorator => {
     const decoratorProperties = getPropertiesOfDecorator(apiParamDecorator);
     const argumentValueOfApiParam = (apiParamParameter.getDecorator('Param').getArguments()[0] as StringLiteral).getLiteralValue();
@@ -62,8 +92,6 @@ export function hasMethodApiParamDecoratorForApiParam(
       return apiParamDecorator;
     }
   }))
-
-  if (matched.length === 1) return true;
-  return false;
+  return matched[0] ?? undefined;
 }
 

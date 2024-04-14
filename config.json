@@ -18,7 +18,7 @@
         "check": true,
         "description": {
           "check": true,
-          "pattern": "^[A-Z][a-z]*(?:\\\\s[a-z]*)*$"
+          "pattern": "^[A-Z][a-z]*(?:\\s[a-z]*)*$"
         },
         "example": {
           "check": false
@@ -29,8 +29,13 @@
       },
       "params": {
         "check": true,
-        "checkEmpty": true,
-        "pattern": ""
+        "description": {
+          "check": true,
+          "pattern": "^[A-Z][a-z]*(?:\\s[a-z]*)*$"
+        },
+        "example": {
+          "check": true
+        }
       }
     }
   }

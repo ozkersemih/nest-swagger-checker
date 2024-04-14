@@ -105,3 +105,17 @@ export function logNoMatchedApiParamDecorator(method: MethodDeclaration, apiPara
 
   console.log(`file://${filePath}:${lineInfo.line}:${lineInfo.column}`,`'${method.getName()}' method does not have ApiParam decorator that matched with '${apiParamOfMethod.getName()}' param`);
 }
+
+export function logApiParamDecoratorNullField(apiParamDecorator: Decorator, apiParamOfMethod: ParameterDeclaration, fieldName:string){
+  const lineInfo = apiParamDecorator.getSourceFile().getLineAndColumnAtPos(apiParamDecorator.getStartLinePos());
+  const filePath = apiParamDecorator.getSourceFile().getFilePath();
+
+  console.log(`file://${filePath}:${lineInfo.line}:${lineInfo.column}`,`ApiParam decorator of '${apiParamOfMethod.getName()}' parameter does not have ${fieldName}`);
+}
+
+export function logApiParamDecoratorNotMatchedField(apiParamDecorator: Decorator, apiParamOfMethod: ParameterDeclaration, fieldName: string){
+  const lineInfo = apiParamDecorator.getSourceFile().getLineAndColumnAtPos(apiParamDecorator.getStartLinePos());
+  const filePath = apiParamDecorator.getSourceFile().getFilePath();
+
+  console.log(`file://${filePath}:${lineInfo.line}:${lineInfo.column}`,`${fieldName} in ApiParam decorator of '${apiParamOfMethod.getName()}' parameter did not match with given pattern`);
+}
