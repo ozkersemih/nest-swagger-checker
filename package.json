@@ -1,6 +1,6 @@
 {
   "name": "nest-swagger-checker",
-  "version": "0.1.0",
+  "version": "1.0.0-beta",
   "description": "Swagger checker for NestJS",
   "main": "index.js",
   "scripts": {
@@ -13,7 +13,7 @@
     "type": "git",
     "url": "git+https://github.com/ozkersemih/nest-swagger-checker.git"
   },
-  "author": "",
+  "author": "ozkersemih",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/ozkersemih/nest-swagger-checker/issues"
