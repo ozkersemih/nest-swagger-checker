@@ -1,6 +1,6 @@
 {
   "name": "nest-swagger-checker",
-  "version": "1.0.0-beta",
+  "version": "1.0.1-beta",
   "description": "Swagger checker for NestJS",
   "main": "index.js",
   "scripts": {
