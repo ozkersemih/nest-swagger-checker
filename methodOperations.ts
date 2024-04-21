@@ -26,10 +26,12 @@ export function checkMethodParam(methodParam: ParameterDeclaration) {
 export function checkApiParamParameterOfMethod(apiParamOfMethod: ParameterDeclaration, method: MethodDeclaration){
   if (!hasMethodApiParamDecorator(method)){
     logNoApiParamDecorator(method);
+    return;
   }
 
   if (!hasMethodApiParamDecoratorForApiParam(method,apiParamOfMethod)){
     logNoMatchedApiParamDecorator(method,apiParamOfMethod);
+    return;
   }
 
   const matchedApiParamDecorator = getMatchedApiParamDecorator(method.getDecorators().filter(decorator => decorator.getName() === 'ApiParam'),apiParamOfMethod);

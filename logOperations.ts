@@ -9,7 +9,7 @@ import {
 export function logNoApiOperation(file: SourceFile, method: MethodDeclaration) {
   const lineInfo = file.getLineAndColumnAtPos(method.getStart());
   const logText =
-    `${file.getFilePath()}:${lineInfo.line}:${lineInfo.column}` +
+    `file://${file.getFilePath()}:${lineInfo.line}:${lineInfo.column} ` +
     'The endpoint method has no ApiOperation tag to describe endpoint informations';
   console.log(logText);
 }
