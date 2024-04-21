@@ -1,5 +1,4 @@
 # nest-swagger-checker
-
 nest-swagger-checker is a package that validate some specifications about Swagger/OpenApi in NestJs projects.
 
 It has configurable options like checking endpoint summary and description emptiness also same for parameters of endpoint.
@@ -170,6 +169,11 @@ If you create `.swautomaterc` file in your projects root folder you can override
 You can run `nest-swagger-checker` command in terminal. It will check every file that matched with file pattern if file includes controller class. 
 
 You can give filePattern in custom config file or you can run command like `nest-swagger-checker src/myCustomPath/myCustomFile`. So yes, you can give your pattern with command.
+
+There is the example output of nest-swagger-checker command below for [nestjs crud example](https://github.com/monikaja/nestjs-crud-example) project.
+
+![nesc-example](https://github.com/ozkersemih/nest-swagger-checker/assets/52029025/ea391981-ce57-427e-bc79-0f441d18cb81)
+
 
 ### Usage Idea
 You can check every file in pre-commit stage with husky package. I don't tell details of husky package, but after installation of husky, we can call nest-swagger-checker command for every files that will be committed before commit.
