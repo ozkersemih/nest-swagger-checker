@@ -1,106 +1,106 @@
 import {Symbol, Node, Decorator, PropertyDeclaration} from "ts-morph";
-import {logApiPropertyNotMatchField, logApiPropertyNullField, logNoApiProperty} from "./logOperations";
+import {collectError, logApiPropertyNotMatchField, logApiPropertyNullField, logNoApiProperty} from "./logOperations";
 import {getConfigField} from "./configOperations";
 import {getPropertiesOfDecorator, isFieldOfDecoratorMatch, isFieldOfDecoratorNull} from "./decoratorOperations";
 import {getPropertiesOfType, isComplexType, isEnumType} from "./typeOperations";
 
 export function getPropertyDeclarationOfProperty(property: Symbol) {
-    return property
-        .getDeclarations()
-        .filter((declaration) => Node.isPropertyDeclaration(declaration))[0];
+  return property
+    .getDeclarations()
+    .filter((declaration) => Node.isPropertyDeclaration(declaration))[0];
 }
 
 export function getDecoratorOfProperty(propertyField: Symbol, decName: string) {
-    let decorator: Decorator | undefined;
-    propertyField.getDeclarations().map((declaration) => {
-        if (Node.isPropertyDeclaration(declaration)) {
-            if (declaration.getDecorator(decName)) {
-                decorator = declaration.getDecorator(decName);
-            }
-        }
-    });
-    return decorator;
+  let decorator: Decorator | undefined;
+  propertyField.getDeclarations().map((declaration) => {
+    if (Node.isPropertyDeclaration(declaration)) {
+      if (declaration.getDecorator(decName)) {
+        decorator = declaration.getDecorator(decName);
+      }
+    }
+  });
+  return decorator;
 }
 
 export function checkProperty(property: Symbol) {
-    const propertyDeclaration = getPropertyDeclarationOfProperty(property);
+  const propertyDeclaration = getPropertyDeclarationOfProperty(property);
 
-    const doesFieldIsClassProperty = propertyDeclaration !== undefined;
-    if (!doesFieldIsClassProperty) {
-        return;
-    }
+  const doesFieldIsClassProperty = propertyDeclaration !== undefined;
+  if (!doesFieldIsClassProperty) {
+    return;
+  }
 
-    if (
-        isComplexType(propertyDeclaration.getType()) &&
-        !isEnumType(propertyDeclaration.getType())
-    ) {
-        const propertiesOfProperty = getPropertiesOfType(propertyDeclaration.getType());
-        propertiesOfProperty?.map((property) => checkProperty(property));
-    }
+  if (
+    isComplexType(propertyDeclaration.getType()) &&
+      !isEnumType(propertyDeclaration.getType())
+  ) {
+    const propertiesOfProperty = getPropertiesOfType(propertyDeclaration.getType());
+    propertiesOfProperty?.map((property) => checkProperty(property));
+  }
 
-    checkApiPropertyDecoratorOfProperty(property);
+  checkApiPropertyDecoratorOfProperty(property);
 }
 
 export function checkApiPropertyDecoratorOfProperty(property: Symbol){
-    const propertyDeclaration = getPropertyDeclarationOfProperty(property);
-    const apiPropertyDecorator = getDecoratorOfProperty(property, 'ApiProperty');
+  const propertyDeclaration = getPropertyDeclarationOfProperty(property);
+  const apiPropertyDecorator = getDecoratorOfProperty(property, 'ApiProperty');
 
-    if (!apiPropertyDecorator) {
-        logNoApiProperty(propertyDeclaration as PropertyDeclaration);
-        return;
-    }
+  if (!apiPropertyDecorator) {
+    collectError(propertyDeclaration, `The '${(propertyDeclaration as PropertyDeclaration).getName()}' field does not have ApiProperty tag to describe information's`)
+    return;
+  }
 
-    checkApiPropertyDecoratorValuesOfProperty(property,apiPropertyDecorator);
+  checkApiPropertyDecoratorValuesOfProperty(property,apiPropertyDecorator);
 }
 
 function checkApiPropertyDecoratorValuesOfProperty(property: Symbol, apiPropertyDecorator: Decorator){
-    const checkDesc = getConfigField('scopes.endpoint.payload.description.check');
-    const checkExample = getConfigField('scopes.endpoint.payload.example.check');
-    const checkType = getConfigField('scopes.endpoint.payload.type.check');
+  const checkDesc = getConfigField('scopes.endpoint.payload.description.check');
+  const checkExample = getConfigField('scopes.endpoint.payload.example.check');
+  const checkType = getConfigField('scopes.endpoint.payload.type.check');
 
-    const decoratorProperties = getPropertiesOfDecorator(apiPropertyDecorator);
+  const decoratorProperties = getPropertiesOfDecorator(apiPropertyDecorator);
 
-    if (checkDesc) {
-        checkDescriptionOfProperty(decoratorProperties['description'], property, apiPropertyDecorator)
-    }
+  if (checkDesc) {
+    checkDescriptionOfProperty(decoratorProperties['description'], property, apiPropertyDecorator)
+  }
 
-    if (checkExample) {
-        checkExampleOfProperty(decoratorProperties['example'],property,apiPropertyDecorator);
-    }
+  if (checkExample) {
+    checkExampleOfProperty(decoratorProperties['example'],property,apiPropertyDecorator);
+  }
 
-    if (checkType) {
-        checkTypeOfProperty(decoratorProperties['type'],property,apiPropertyDecorator);
-    }
+  if (checkType) {
+    checkTypeOfProperty(decoratorProperties['type'],property,apiPropertyDecorator);
+  }
 }
 
 function checkDescriptionOfProperty(
-    description: any,
-    field: Symbol,
-    decorator: Decorator,
+  description: any,
+  field: Symbol,
+  decorator: Decorator,
 ) {
-    if (isFieldOfDecoratorNull('description',decorator)){
-        logApiPropertyNullField(decorator,'description',field);
-    }
+  if (isFieldOfDecoratorNull('description',decorator)){
+    logApiPropertyNullField(decorator,'description',field);
+  }
 
-    const pattern = getConfigField('scopes.endpoint.payload.description.pattern');
+  const pattern = getConfigField('scopes.endpoint.payload.description.pattern');
 
-    if (pattern && !isFieldOfDecoratorMatch('description',decorator,pattern)){
-        logApiPropertyNotMatchField(decorator,'description',field)
-    }
+  if (pattern && !isFieldOfDecoratorMatch('description',decorator,pattern)){
+    logApiPropertyNotMatchField(decorator,'description',field)
+  }
 }
 
 function checkExampleOfProperty(
-    example: any,
-    field: Symbol,
-    decorator: Decorator,
+  example: any,
+  field: Symbol,
+  decorator: Decorator,
 ) {
-    if (isFieldOfDecoratorNull('example',decorator)){
-        logApiPropertyNullField(decorator,'example',field)
-    }
+  if (isFieldOfDecoratorNull('example',decorator)){
+    logApiPropertyNullField(decorator,'example',field)
+  }
 }
 
 function checkTypeOfProperty(_type: any, field: Symbol, decorator: Decorator) {
-    if (isFieldOfDecoratorNull('type',decorator)){
-        logApiPropertyNullField(decorator,'type',field)
-    }
+  if (isFieldOfDecoratorNull('type',decorator)){
+    logApiPropertyNullField(decorator,'type',field)
+  }
 }

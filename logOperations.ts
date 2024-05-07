@@ -4,14 +4,27 @@ import {
   PropertyDeclaration,
   Symbol,
   SourceFile, ParameterDeclaration,
+  Node,
 } from 'ts-morph';
 
-export function logNoApiOperation(file: SourceFile, method: MethodDeclaration) {
-  const lineInfo = file.getLineAndColumnAtPos(method.getStart());
-  const logText =
-    `file://${file.getFilePath()}:${lineInfo.line}:${lineInfo.column} ` +
-    'The endpoint method has no ApiOperation tag to describe endpoint informations';
-  console.log(logText);
+import { OPTIONS, STATE } from './globals';
+
+export function collectError(node: Node, errorText: string) {
+  const file = node.getSourceFile();
+  const lineInfo = file.getLineAndColumnAtPos(node.getStart());
+
+  if (OPTIONS.interactive) {
+    const annotatedPath = `file://${file.getFilePath()}:${lineInfo.line}:${lineInfo.column}`;
+    console.log(`${annotatedPath} ${errorText}`)
+  }
+
+  STATE.push({
+    file: file.getFilePath(),
+    line: lineInfo.line,
+    col: lineInfo.column,
+    description: errorText,
+    node,
+  })
 }
 
 export function logNoApiProperty(declaration: PropertyDeclaration) {
@@ -22,7 +35,12 @@ export function logNoApiProperty(declaration: PropertyDeclaration) {
     `file://${file.getFilePath()}:${lineInfo.line}:${lineInfo.column} ` +
     `The '${propName}' field does not have ApiProperty tag to describe information's`;
   console.log(logText);
-  return logText;
+
+  found.push({
+    file: file.getFilePath(),
+    line: lineInfo.line,
+    col: lineInfo.column
+  })
 }
 
 export function logEndpointEmptySummary(
@@ -33,6 +51,12 @@ export function logEndpointEmptySummary(
     `file://${file.getFilePath()}:${lineInfo.line}:${lineInfo.column} ` +
     'Summary of endpoint is empty';
   console.log(logText);
+
+  found.push({
+    file: file.getFilePath(),
+    line: lineInfo.line,
+    col: lineInfo.column
+  })
 }
 
 export function logInvalidEndpointSummary(
@@ -43,6 +67,12 @@ export function logInvalidEndpointSummary(
     `file://${file.getFilePath()}:${lineInfo.line}:${lineInfo.column} ` +
     'Summary of endpoint did not match given pattern';
   console.log(logText);
+
+  found.push({
+    file: file.getFilePath(),
+    line: lineInfo.line,
+    col: lineInfo.column
+  })
 }
 
 export function logInvalidEndpointDescription(
@@ -53,6 +83,12 @@ export function logInvalidEndpointDescription(
     `file://${file.getFilePath()}:${lineInfo.line}:${lineInfo.column} ` +
     'Description of endpoint did not match given pattern';
   console.log(logText);
+
+  found.push({
+    file: file.getFilePath(),
+    line: lineInfo.line,
+    col: lineInfo.column
+  })
 }
 
 export function logEndpointEmptyDescription(
@@ -63,6 +99,12 @@ export function logEndpointEmptyDescription(
     `file://${file.getFilePath()}:${lineInfo.line}:${lineInfo.column} ` +
     'Description of endpoint is empty';
   console.log(logText);
+
+  found.push({
+    file: file.getFilePath(),
+    line: lineInfo.line,
+    col: lineInfo.column
+  })
 }
 
 export function logApiPropertyNullField(apiPropertyDecorator: Decorator, apiPropertyFieldName: string, field: Symbol){
@@ -76,6 +118,12 @@ export function logApiPropertyNullField(apiPropertyDecorator: Decorator, apiProp
       }`,
       `The '${field.getName()}' field does not have ${apiPropertyFieldName}`,
   );
+
+  found.push({
+    file: apiPropertyDecorator.getSourceFile().getFilePath(),
+    line: lineInfo.line,
+    col: lineInfo.column
+  })
 }
 
 export function logApiPropertyNotMatchField(apiPropertyDecorator: Decorator, apiPropertyFieldName: string, field: Symbol){
@@ -90,6 +138,12 @@ export function logApiPropertyNotMatchField(apiPropertyDecorator: Decorator, api
       }`,
       `${apiPropertyFieldName} value of '${field.getName()}' field did not match given pattern`,
   );
+
+  found.push({
+    file: apiPropertyDecorator.getSourceFile().getFilePath(),
+    line: lineInfo.line,
+    col: lineInfo.column
+  })
 }
 
 export function logNoApiParamDecorator(method: MethodDeclaration){
@@ -97,6 +151,12 @@ export function logNoApiParamDecorator(method: MethodDeclaration){
   const filePath = method.getSourceFile().getFilePath();
 
   console.log(`file://${filePath}:${lineInfo.line}:${lineInfo.column}`,`'${method.getName()}' method does not have ApiParam decorator but it has parameter with @Param decorator`);
+
+  found.push({
+    file: filePath,
+    line: lineInfo.line,
+    col: lineInfo.column
+  })
 }
 
 export function logNoMatchedApiParamDecorator(method: MethodDeclaration, apiParamOfMethod: ParameterDeclaration){
@@ -104,6 +164,12 @@ export function logNoMatchedApiParamDecorator(method: MethodDeclaration, apiPara
   const filePath = method.getSourceFile().getFilePath();
 
   console.log(`file://${filePath}:${lineInfo.line}:${lineInfo.column}`,`'${method.getName()}' method does not have ApiParam decorator that matched with '${apiParamOfMethod.getName()}' param`);
+
+  found.push({
+    file: filePath,
+    line: lineInfo.line,
+    col: lineInfo.column
+  })
 }
 
 export function logApiParamDecoratorNullField(apiParamDecorator: Decorator, apiParamOfMethod: ParameterDeclaration, fieldName:string){
@@ -111,6 +177,12 @@ export function logApiParamDecoratorNullField(apiParamDecorator: Decorator, apiP
   const filePath = apiParamDecorator.getSourceFile().getFilePath();
 
   console.log(`file://${filePath}:${lineInfo.line}:${lineInfo.column}`,`ApiParam decorator of '${apiParamOfMethod.getName()}' parameter does not have ${fieldName}`);
+
+  found.push({
+    file: filePath,
+    line: lineInfo.line,
+    col: lineInfo.column
+  })
 }
 
 export function logApiParamDecoratorNotMatchedField(apiParamDecorator: Decorator, apiParamOfMethod: ParameterDeclaration, fieldName: string){
@@ -118,4 +190,10 @@ export function logApiParamDecoratorNotMatchedField(apiParamDecorator: Decorator
   const filePath = apiParamDecorator.getSourceFile().getFilePath();
 
   console.log(`file://${filePath}:${lineInfo.line}:${lineInfo.column}`,`${fieldName} in ApiParam decorator of '${apiParamOfMethod.getName()}' parameter did not match with given pattern`);
+
+  found.push({
+    file: filePath,
+    line: lineInfo.line,
+    col: lineInfo.column
+  })
 }

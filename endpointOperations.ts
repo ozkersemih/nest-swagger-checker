@@ -9,6 +9,7 @@ import {
   logInvalidEndpointDescription,
   logInvalidEndpointSummary,
   logNoApiOperation,
+  collectError,
 } from './logOperations';
 import {getConfigField} from './configOperations';
 import {checkApiParamParameterOfMethod, checkMethodParam, hasMethodApiOperationDecorator} from "./methodOperations";
@@ -18,7 +19,8 @@ export function checkEndpointInformations(method: MethodDeclaration) {
   const decorators = method.getDecorators();
 
   if (!hasMethodApiOperationDecorator(method, decorators)) {
-    logNoApiOperation(method.getSourceFile(), method);
+    // TODO: Make message a constant
+    collectError(method, "The endpoint method has no ApiOperation tag to describe endpoint informations");
   }
 
   if (hasMethodApiOperationDecorator(method, decorators)) {

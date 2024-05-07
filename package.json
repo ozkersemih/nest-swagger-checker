@@ -2,7 +2,8 @@
   "name": "nest-swagger-checker",
   "version": "1.0.1-beta",
   "description": "Swagger checker for NestJS",
-  "main": "index.js",
+  "main": "./automate.js",
+  "exports": "./automate.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -20,10 +21,13 @@
   },
   "homepage": "https://github.com/ozkersemih/nest-swagger-checker#readme",
   "dependencies": {
+    "ramda": "^0.30.0",
     "ts-morph": "^22.0.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   },
   "devDependencies": {
-    "@types/node": "^20.12.7"
+    "@types/node": "^20.12.7",
+    "@types/ramda": "^0.30.0"
   }
 }

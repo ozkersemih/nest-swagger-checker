@@ -3,17 +3,21 @@ import { getControllerFiles } from './fileOperations';
 import {getConfigField} from './configOperations';
 import {checkEndpointInformations, checkEndpointParam, checkEndpointPayload} from './endpointOperations';
 import * as path from "path";
-
-const FILE_PATH_PATTERN = process.argv[2] ? `${path.resolve('./')}/${process.argv[2]}` : `${path.resolve('./')}/${getConfigField('scopes.file.pathPattern')}`;
-
+import * as process from 'node:process';
+import { OPTIONS, STATE } from './globals';
 
 const shouldCheckEndpointInformations = getConfigField('scopes.endpoint.description.check');
 const shouldCheckEndpointPayload = getConfigField('scopes.endpoint.payload.check');
 const shouldCheckEndpointApiParam = getConfigField('scopes.endpoint.params.check');
 
-function main() {
+export function main(opts: typeof OPTIONS) {
+  OPTIONS.interactive = opts.interactive;
+  if (!opts.fileIncludePattern) {
+    OPTIONS.fileIncludePattern = `${path.resolve('./')}/${getConfigField('scopes.file.pathPattern')}`
+  }
+
   const project = new Project();
-  project.addSourceFilesAtPaths(FILE_PATH_PATTERN);
+  project.addSourceFilesAtPaths('/Users/isamert.gurbuz/workspace/projects/trendyol/discovery/seller-ads/ads-intelligence/cpc-api/src/**/*.ts');
 
   const controllerFiles = getControllerFiles(project);
 
@@ -26,7 +30,7 @@ function main() {
         }
 
         if (shouldCheckEndpointPayload) {
-            checkEndpointPayload(method);
+          checkEndpointPayload(method);
         }
 
         if (shouldCheckEndpointApiParam){
@@ -42,6 +46,6 @@ function main() {
       });
     });
   });
-}
 
-main();
+  return STATE;
+}
