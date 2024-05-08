@@ -9,10 +9,7 @@ import {
 import {getPropertiesOfType} from "./typeOperations";
 import {getPropertiesOfDecorator, isFieldOfDecoratorMatch, isFieldOfDecoratorNull} from "./decoratorOperations";
 import {
-  logApiParamDecoratorNotMatchedField,
-  logApiParamDecoratorNullField,
-  logNoApiParamDecorator,
-  logNoMatchedApiParamDecorator
+  collectError,
 } from "./logOperations";
 import {getConfigField} from "./configOperations";
 
@@ -25,12 +22,14 @@ export function checkMethodParam(methodParam: ParameterDeclaration) {
 
 export function checkApiParamParameterOfMethod(apiParamOfMethod: ParameterDeclaration, method: MethodDeclaration){
   if (!hasMethodApiParamDecorator(method)){
-    logNoApiParamDecorator(method);
+    const errorText:string = `'${method.getName()}' method does not have ApiParam decorator but it has parameter with @Param decorator`
+    collectError(method,errorText);
     return;
   }
 
   if (!hasMethodApiParamDecoratorForApiParam(method,apiParamOfMethod)){
-    logNoMatchedApiParamDecorator(method,apiParamOfMethod);
+    const errorText:string = `'${method.getName()}' method does not have ApiParam decorator that matched with '${apiParamOfMethod.getName()}' param`
+    collectError(method,errorText);
     return;
   }
 
@@ -38,17 +37,20 @@ export function checkApiParamParameterOfMethod(apiParamOfMethod: ParameterDeclar
 
   const shouldCheckParamDescription = getConfigField("scopes.endpoint.params.description.check");
   if (shouldCheckParamDescription && isFieldOfDecoratorNull('description',matchedApiParamDecorator)){
-    logApiParamDecoratorNullField(matchedApiParamDecorator,apiParamOfMethod,'description');
+    const errorText:string = `ApiParam decorator of '${apiParamOfMethod.getName()}' parameter does not have 'description'`
+    collectError(matchedApiParamDecorator,errorText);
   }
 
   const paramDescriptionPattern = getConfigField("scopes.endpoint.params.description.pattern");
   if (paramDescriptionPattern && !isFieldOfDecoratorMatch('description',matchedApiParamDecorator,paramDescriptionPattern)){
-    logApiParamDecoratorNotMatchedField(matchedApiParamDecorator,apiParamOfMethod,'description');
+    const errorText:string = `'description' in ApiParam decorator of '${apiParamOfMethod.getName()}' parameter did not match with given pattern`
+    collectError(matchedApiParamDecorator,errorText);
   }
 
   const shouldCheckParamExample = getConfigField("scopes.endpoint.params.example.check");
   if (shouldCheckParamExample && isFieldOfDecoratorNull('example',matchedApiParamDecorator)){
-    logApiParamDecoratorNullField(matchedApiParamDecorator,apiParamOfMethod,'example');
+    const errorText:string = `'example' in ApiParam decorator of '${apiParamOfMethod.getName()}' parameter did not match with given pattern`
+    collectError(matchedApiParamDecorator, errorText);
   }
 }
 

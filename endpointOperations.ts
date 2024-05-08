@@ -4,11 +4,6 @@ import {
   isFieldOfDecoratorMatch,
 } from './decoratorOperations';
 import {
-  logEndpointEmptyDescription,
-  logEndpointEmptySummary,
-  logInvalidEndpointDescription,
-  logInvalidEndpointSummary,
-  logNoApiOperation,
   collectError,
 } from './logOperations';
 import {getConfigField} from './configOperations';
@@ -19,8 +14,8 @@ export function checkEndpointInformations(method: MethodDeclaration) {
   const decorators = method.getDecorators();
 
   if (!hasMethodApiOperationDecorator(method, decorators)) {
-    // TODO: Make message a constant
-    collectError(method, "The endpoint method has no ApiOperation tag to describe endpoint informations");
+    const errorText:string = "The endpoint method has no ApiOperation tag to describe endpoint informations";
+    collectError(method, errorText);
   }
 
   if (hasMethodApiOperationDecorator(method, decorators)) {
@@ -60,13 +55,12 @@ function checkSummary(apiOperationDec: Decorator) {
     ? true
     : false;
 
-  const sourceFile = apiOperationDec.getSourceFile();
-  const lineInfo = sourceFile.getLineAndColumnAtPos(apiOperationDec.getStart());
   if (
     shouldCheckSummaryEmptiness &&
     isFieldOfDecoratorEmpty('summary', apiOperationDec)
   ) {
-    logEndpointEmptySummary(lineInfo, sourceFile);
+    const errorText = 'Summary of endpoint is empty';
+    collectError(apiOperationDec, errorText);
   }
 
   if (shouldCheckSummaryPattern) {
@@ -74,7 +68,8 @@ function checkSummary(apiOperationDec: Decorator) {
       `${getConfigField('scopes.endpoint.summary.pattern')}`,
     );
     if (!isFieldOfDecoratorMatch('summary', apiOperationDec, patternRegex)) {
-      logInvalidEndpointSummary(lineInfo, sourceFile);
+      const errorText: string = 'Summary of endpoint did not match given pattern'
+      collectError(apiOperationDec, errorText);
     }
   }
 }
@@ -85,13 +80,12 @@ function checkDescription(apiOperationDec: Decorator) {
     ? true
     : false;
 
-  const sourceFile = apiOperationDec.getSourceFile();
-  const lineInfo = sourceFile.getLineAndColumnAtPos(apiOperationDec.getStart());
   if (
     shouldCheckDescriptionEmptiness &&
     isFieldOfDecoratorEmpty('description', apiOperationDec)
   ) {
-    logEndpointEmptyDescription(lineInfo, sourceFile);
+    const errorText:string = 'Description of endpoint is empty';
+    collectError(apiOperationDec, errorText);
   }
 
   if (shouldCheckDescPattern) {
@@ -101,7 +95,8 @@ function checkDescription(apiOperationDec: Decorator) {
     if (
       !isFieldOfDecoratorMatch('description', apiOperationDec, patternRegex)
     ) {
-      logInvalidEndpointDescription(lineInfo, sourceFile);
+      const errorText:string = 'Description of endpoint did not match given pattern';
+      collectError(apiOperationDec, errorText);
     }
   }
 }

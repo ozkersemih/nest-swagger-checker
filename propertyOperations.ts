@@ -1,5 +1,5 @@
 import {Symbol, Node, Decorator, PropertyDeclaration} from "ts-morph";
-import {collectError, logApiPropertyNotMatchField, logApiPropertyNullField, logNoApiProperty} from "./logOperations";
+import {collectError} from "./logOperations";
 import {getConfigField} from "./configOperations";
 import {getPropertiesOfDecorator, isFieldOfDecoratorMatch, isFieldOfDecoratorNull} from "./decoratorOperations";
 import {getPropertiesOfType, isComplexType, isEnumType} from "./typeOperations";
@@ -79,13 +79,16 @@ function checkDescriptionOfProperty(
   decorator: Decorator,
 ) {
   if (isFieldOfDecoratorNull('description',decorator)){
-    logApiPropertyNullField(decorator,'description',field);
+    const errorText:string = `The '${field.getName()}' field does not have 'description'`
+    collectError(decorator,errorText)
+    return;
   }
 
   const pattern = getConfigField('scopes.endpoint.payload.description.pattern');
 
   if (pattern && !isFieldOfDecoratorMatch('description',decorator,pattern)){
-    logApiPropertyNotMatchField(decorator,'description',field)
+    const errorText:string = `'description' value of '${field.getName()}' field did not match given pattern`
+    collectError(decorator,errorText)
   }
 }
 
@@ -95,12 +98,14 @@ function checkExampleOfProperty(
   decorator: Decorator,
 ) {
   if (isFieldOfDecoratorNull('example',decorator)){
-    logApiPropertyNullField(decorator,'example',field)
+    const errorText:string = `The '${field.getName()}' field does not have 'example'`
+    collectError(decorator,errorText)
   }
 }
 
 function checkTypeOfProperty(_type: any, field: Symbol, decorator: Decorator) {
   if (isFieldOfDecoratorNull('type',decorator)){
-    logApiPropertyNullField(decorator,'type',field)
+    const errorText:string = `The '${field.getName()}' field does not have 'type'`
+    collectError(decorator,errorText)
   }
 }

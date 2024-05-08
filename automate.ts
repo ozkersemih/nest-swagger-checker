@@ -3,7 +3,6 @@ import { getControllerFiles } from './fileOperations';
 import {getConfigField} from './configOperations';
 import {checkEndpointInformations, checkEndpointParam, checkEndpointPayload} from './endpointOperations';
 import * as path from "path";
-import * as process from 'node:process';
 import { OPTIONS, STATE } from './globals';
 
 const shouldCheckEndpointInformations = getConfigField('scopes.endpoint.description.check');
@@ -17,10 +16,10 @@ export function main(opts: typeof OPTIONS) {
   }
 
   const project = new Project();
-  project.addSourceFilesAtPaths('/Users/isamert.gurbuz/workspace/projects/trendyol/discovery/seller-ads/ads-intelligence/cpc-api/src/**/*.ts');
+  project.addSourceFilesAtPaths(opts.fileIncludePattern ?? OPTIONS.fileIncludePattern);
 
   const controllerFiles = getControllerFiles(project);
-
+  console.log('OPTIONS.fileIncludePattern',OPTIONS.fileIncludePattern);
   controllerFiles.forEach((file) => {
     file.getClasses().forEach((clazz) => {
       clazz.getMethods().forEach((method) => {

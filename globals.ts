@@ -1,3 +1,5 @@
+import {Node} from "ts-morph";
+
 type Error = {
   file: string;
   line: number;
@@ -9,6 +11,6 @@ type Error = {
 export const STATE: Error[] = [];
 
 export const OPTIONS = {
-  interactive: false,
-  fileIncludePattern:
+  interactive: true,
+  fileIncludePattern: '*.ts'
 };
