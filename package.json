@@ -2,8 +2,8 @@
   "name": "nest-swagger-checker",
   "version": "1.0.1-beta",
   "description": "Swagger checker for NestJS",
-  "main": "./automate.js",
-  "exports": "./automate.js",
+  "main": "./main.js",
+  "exports": "./main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
