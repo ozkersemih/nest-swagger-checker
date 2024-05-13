@@ -15,11 +15,12 @@ import path from "path";
 import { readFileSync } from "fs";
 import * as R from "ramda";
 
-type Error = {
+export type Error = {
   file: string;
   line: number;
   col: number;
   description: string;
+  kind: ErrorKind;
   node: Node;
 };
 
@@ -31,6 +32,12 @@ type SwaggerAnalyzerOptions = {
   fileIncludePattern: string;
   interactive: boolean;
 };
+
+export enum ErrorKind {
+  ApiInformationError = 'ApiInformationError',
+  ApiParamError = 'ApiParamError',
+  ApiPropertyError = 'ApiPropertyError',
+}
 
 type RunOptions = {
   overwrittenFiles: [string, string][];
@@ -79,6 +86,7 @@ export class SwaggerAnalyzer {
   CONFIG = R.mergeDeepRight(this.internalConfig, this.externalConfig);
 
   getConfigField(configPath: string) {
+    console.log('CONFIG',this.CONFIG);
     return this.getObjectOfJson(this.CONFIG, configPath, "");
   }
 
@@ -88,7 +96,7 @@ export class SwaggerAnalyzer {
 
   // * Global stuff
 
-  emit(node: Node, errorText: string) {
+  emit(node: Node, errorText: string, errorKind: ErrorKind) {
     const file = node.getSourceFile();
     const filePath = file.getFilePath();
     const lineInfo = file.getLineAndColumnAtPos(node.getStart());
@@ -99,11 +107,12 @@ export class SwaggerAnalyzer {
       console.log(`${annotatedPath} ${errorText}`);
     }
 
-    const error = {
+    const error: Error = {
       file: filePath,
       line: lineInfo.line,
       col: lineInfo.column,
       description: errorText,
+      kind: errorKind,
       node,
     };
 
@@ -164,7 +173,7 @@ export class SwaggerAnalyzer {
     if (!this.hasMethodApiOperationDecorator(method, decorators)) {
       const errorText: string =
         "The endpoint method has no ApiOperation tag to describe endpoint informations";
-      this.emit(method, errorText);
+      this.emit(method, errorText, ErrorKind.ApiInformationError);
     }
 
     if (this.hasMethodApiOperationDecorator(method, decorators)) {
@@ -220,7 +229,7 @@ export class SwaggerAnalyzer {
       this.isFieldOfDecoratorEmpty("summary", apiOperationDec)
     ) {
       const errorText = "Summary of endpoint is empty";
-      this.emit(apiOperationDec, errorText);
+      this.emit(apiOperationDec, errorText, ErrorKind.ApiInformationError);
     }
 
     if (shouldCheckSummaryPattern) {
@@ -232,7 +241,7 @@ export class SwaggerAnalyzer {
       ) {
         const errorText: string =
           "Summary of endpoint did not match given pattern";
-        this.emit(apiOperationDec, errorText);
+        this.emit(apiOperationDec, errorText, ErrorKind.ApiInformationError);
       }
     }
   }
@@ -249,7 +258,7 @@ export class SwaggerAnalyzer {
       this.isFieldOfDecoratorEmpty("description", apiOperationDec)
     ) {
       const errorText: string = "Description of endpoint is empty";
-      this.emit(apiOperationDec, errorText);
+      this.emit(apiOperationDec, errorText, ErrorKind.ApiInformationError);
     }
 
     if (shouldCheckDescPattern) {
@@ -265,7 +274,7 @@ export class SwaggerAnalyzer {
       ) {
         const errorText: string =
           "Description of endpoint did not match given pattern";
-        this.emit(apiOperationDec, errorText);
+        this.emit(apiOperationDec, errorText, ErrorKind.ApiInformationError);
       }
     }
   }
@@ -411,14 +420,14 @@ export class SwaggerAnalyzer {
     if (!this.hasMethodApiParamDecorator(method)) {
       const errorText: string =
         `'${method.getName()}' method does not have ApiParam decorator but it has parameter with @Param decorator`;
-      this.emit(method, errorText);
+      this.emit(method, errorText, ErrorKind.ApiParamError);
       return;
     }
 
     if (!this.hasMethodApiParamDecoratorForApiParam(method, apiParamOfMethod)) {
       const errorText: string =
         `'${method.getName()}' method does not have ApiParam decorator that matched with '${apiParamOfMethod.getName()}' param`;
-      this.emit(method, errorText);
+      this.emit(method, errorText, ErrorKind.ApiParamError);
       return;
     }
 
@@ -438,7 +447,7 @@ export class SwaggerAnalyzer {
     ) {
       const errorText: string =
         `ApiParam decorator of '${apiParamOfMethod.getName()}' parameter does not have 'description'`;
-      this.emit(matchedApiParamDecorator, errorText);
+      this.emit(matchedApiParamDecorator, errorText, ErrorKind.ApiParamError);
     }
 
     const paramDescriptionPattern = this.getConfigField(
@@ -454,7 +463,7 @@ export class SwaggerAnalyzer {
     ) {
       const errorText: string =
         `'description' in ApiParam decorator of '${apiParamOfMethod.getName()}' parameter did not match with given pattern`;
-      this.emit(matchedApiParamDecorator, errorText);
+      this.emit(matchedApiParamDecorator, errorText, ErrorKind.ApiParamError);
     }
 
     const shouldCheckParamExample = this.getConfigField(
@@ -466,7 +475,7 @@ export class SwaggerAnalyzer {
     ) {
       const errorText: string =
         `'example' in ApiParam decorator of '${apiParamOfMethod.getName()}' parameter did not match with given pattern`;
-      this.emit(matchedApiParamDecorator, errorText);
+      this.emit(matchedApiParamDecorator, errorText, ErrorKind.ApiParamError);
     }
   }
 
@@ -586,6 +595,7 @@ export class SwaggerAnalyzer {
         `The '${
           (propertyDeclaration as PropertyDeclaration).getName()
         }' field does not have ApiProperty tag to describe information's`,
+          ErrorKind.ApiPropertyError
       );
       return;
     }
@@ -645,7 +655,7 @@ export class SwaggerAnalyzer {
     if (this.isFieldOfDecoratorNull("description", decorator)) {
       const errorText: string =
         `The '${field.getName()}' field does not have 'description'`;
-      this.emit(decorator, errorText);
+      this.emit(decorator, errorText, ErrorKind.ApiPropertyError);
       return;
     }
 
@@ -659,7 +669,7 @@ export class SwaggerAnalyzer {
     ) {
       const errorText: string =
         `'description' value of '${field.getName()}' field did not match given pattern`;
-      this.emit(decorator, errorText);
+      this.emit(decorator, errorText, ErrorKind.ApiPropertyError);
     }
   }
 
@@ -671,7 +681,7 @@ export class SwaggerAnalyzer {
     if (this.isFieldOfDecoratorNull("example", decorator)) {
       const errorText: string =
         `The '${field.getName()}' field does not have 'example'`;
-      this.emit(decorator, errorText);
+      this.emit(decorator, errorText, ErrorKind.ApiPropertyError);
     }
   }
 
@@ -679,7 +689,7 @@ export class SwaggerAnalyzer {
     if (this.isFieldOfDecoratorNull("type", decorator)) {
       const errorText: string =
         `The '${field.getName()}' field does not have 'type'`;
-      this.emit(decorator, errorText);
+      this.emit(decorator, errorText, ErrorKind.ApiPropertyError);
     }
   }
 

@@ -2,13 +2,16 @@
   "name": "nest-swagger-checker",
   "version": "1.0.1-beta",
   "description": "Swagger checker for NestJS",
-  "main": "./main.js",
-  "exports": "./main.js",
+  "main": "./dist/main.js",
+  "exports": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "type": "commonjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsup"
   },
   "bin": {
-    "nest-swagger-checker": "./cli.js"
+    "nest-swagger-checker": "cli.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +22,14 @@
   "bugs": {
     "url": "https://github.com/ozkersemih/nest-swagger-checker/issues"
   },
+  "files": ["dist"],
+  "tsup": {
+    "entry": ["lib","config.json"],
+    "splitting": false,
+    "sourcemap": true,
+    "dts": true,
+    "clean": true
+    },
   "homepage": "https://github.com/ozkersemih/nest-swagger-checker#readme",
   "dependencies": {
     "ramda": "^0.30.0",
@@ -28,6 +39,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
-    "@types/ramda": "^0.30.0"
+    "@types/ramda": "^0.30.0",
+    "tsup": "^8.0.2"
   }
 }
