@@ -22,14 +22,19 @@
   "bugs": {
     "url": "https://github.com/ozkersemih/nest-swagger-checker/issues"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "tsup": {
-    "entry": ["lib","config.json"],
+    "entry": [
+      "lib",
+      "config.json"
+    ],
     "splitting": false,
     "sourcemap": true,
     "dts": true,
     "clean": true
-    },
+  },
   "homepage": "https://github.com/ozkersemih/nest-swagger-checker#readme",
   "dependencies": {
     "ramda": "^0.30.0",
