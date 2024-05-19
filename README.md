@@ -79,86 +79,101 @@ public async get(
 According to above case, get endpoint has a param that name with `id`. nest-swagger-will check, if are there any @ApiParam decorator that has same name value with endpoints `id` param. After that it will check description, example etc. fields in @ApiParam decorator according to configuration options.
 
 
-## Configuratin Options
+## Configuration
 
-<details><summary><a href="#"><code>scopes</code></a></summary><ul style="list-style: none">
-   <li >
-       <details><summary><a href=""><code>file</code></a> </summary> 
-        <ul style="list-style: none"> 
-             <li><code>pathPattern: src/**/*.ts</code></li>
-        </ul>
-       </details>
-    </li> <!-- End 1 -->
-   <li >
-    <details><summary><a href=""><code>endpoint</code></a></summary>
-    <ul style="list-style: none">
-        <details><summary><a href=""><code>summary</code></a> </summary> 
-            <ul style="list-style: none"> 
-                <li><code>check: true</code></li>
-                <li><code>checkEmpty: true</code></li>
-                <li><code>pattern: true</code></li>
-            </ul>
-       </details>
-        <details><summary><a href=""><code>description</code></a> </summary> 
-            <ul style="list-style: none"> 
-                <li><code>check: true</code></li>
-                <li><code>checkEmpty: true</code></li>
-                <li><code>pattern: true</code></li>
-            </ul>
-       </details>
-        <details><summary><a href=""><code>payload</code></a> </summary> 
-            <ul style="list-style: none"> 
-                <li><code>check: true</code></li>
-                <li>
-                    <details><summary><a href=""><code>description</code></a> </summary> 
-                        <ul style="list-style: none"> 
-                            <li><code>check: true</code></li>
-                            <li><code>pattern: ^[A-Z][a-z]*(?:\s[a-z]*)*$ // regex pattern for description of every payload field (optional)</code></li>
-                        </ul>
-                    </details>
-                </li>
-                <li>
-                    <details><summary><a href=""><code>example</code></a> </summary> 
-                        <ul style="list-style: none"> 
-                            <li><code>check: true</code></li>
-                        </ul>
-                    </details>
-                </li>
-                <li>
-                    <details><summary><a href=""><code>type</code></a> </summary> 
-                        <ul style="list-style: none"> 
-                            <li><code>check: true // check type property in ApiProperty decorators for every field of endpoint payload</code></li>
-                        </ul>
-                    </details>
-                </li>
-            </ul>
-       </details>
-        <details><summary><a href=""><code>params</code></a> </summary> 
-            <ul style="list-style: none"> 
-                <li><code>check: true</code></li>
-                <li>
-                    <details><summary><a href=""><code>description</code></a> </summary> 
-                        <ul style="list-style: none"> 
-                            <li><code>check: true</code></li>
-                            <li><code>pattern: ^[A-Z][a-z]*(?:\s[a-z]*)*$ // regex pattern for description of every endpoint param (optional)</code></li>
-                        </ul>
-                    </details>
-                </li>
-                <li>
-                    <details><summary><a href=""><code>example</code></a> </summary> 
-                        <ul style="list-style: none"> 
-                            <li><code>check: true</code></li>
-                        </ul>
-                    </details>
-                </li>
-            </ul>
-       </details>
+Whole configuration and hierarchy can shown below section:
+```json
+{
+  "scopes": {
+    "file": {
+      "pathPattern": "src/**/*.ts"
+    },
+    "endpoint": {
+      "information": {
+        "check": true,
+        "summary": {
+          "check": true,
+          "checkEmpty": true,
+          "pattern": null
+        },
+        "description": {
+          "check": true,
+          "checkEmpty": true,
+          "pattern": null
+        }
+      },
+      "body": {
+        "check": true,
+        "description": {
+          "check": false,
+          "pattern": "^[A-Z][a-z]*(?:\\s[a-z]*)*$"
+        },
+        "example": {
+          "check": false
+        },
+        "type": {
+          "check": false
+        }
+      },
+      "query": {
+        "check": false,
+        "description": {
+          "check": true,
+          "pattern": "^[A-Z][a-z]*(?:\\s[a-z]*)*$"
+        },
+        "example": {
+          "check": false
+        },
+        "type": {
+          "check": false
+        }
+      },
+      "params": {
+        "check": true,
+        "description": {
+          "check": true,
+          "pattern": "^[A-Z][a-z]*(?:\\s[a-z]*)*$"
+        },
+        "example": {
+          "check": true
+        }
+      }
+    }
+  }
+}
+```
 
-   </ul>
-    </details>
-    </li> 
-   </ul> 
-  </details>
+### Scopes
+* `file`: It is scope about file related configurations.
+* `endpoint`: It is root scope about endpoint configurations.
+* `information`: Scope to set configurations about endpoint information like summary(title) and description.
+* `summary`: Scope to set configurations about endpoint summary.
+* `description`: Scope to set configurations about description of several places like endpoint, endpoint parameters, properties of endpoint payload and queries etc.
+* `example`: Scope to set configurations about example of several places like parameter of endpoint, properties of endpoint body and queries etc. ApiProperty, ApiParam etc. decorators have example field inside them.
+* `type`: Scope to set configurations about type of several places like parameter of endpoint, properties of endpoint body and queries etc. ApiProperty, ApiParam etc. decorators have type field inside them.
+
+### Configuration Options
+* `pathPattern`: It is a regex to identify which files should be checked in a project when package runs.
+* `check`: It identifies whether related scope should checked or not. If it is true, nsc package will check whether related scope exists or not.
+* `checkEmpty`: It identifies whether emptiness of related scope should checked or not. If it is true and related scope exists, nsc package will check whether related scope has empty value or not.
+* `pattern`: Regex to check value of related field matches or not. If it is true, nsc package will check whether value of related scope matches with given pattern or not.
+
+As you see structure of sub-scopes are so similar. Let's explain logic about them with one of them:
+```"information": {
+        "check": true,
+        "summary": {
+          "check": true,
+          "checkEmpty": true,
+          "pattern": null
+        },
+        "description": {
+          "check": true,
+          "checkEmpty": true,
+          "pattern": null
+        }
+      }
+```
+This sub-scope, information, is about to endpoint summary and description. So it has two sub-scope also `summary` and `description`. `Check` means should nsc check endpoint informations or not. If `check` for information is true, package will check something about endpoint information by using `ApiOperation` decorator. Like that, the `check` config of `summary` and `description` identify, should package check 'summary' and 'description' field inside `ApiOperation` decorator.
 
 ## Usage
 
