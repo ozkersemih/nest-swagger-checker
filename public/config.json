@@ -17,7 +17,20 @@
           "pattern": null
         }
       },
-      "payload": {
+      "body": {
+        "check": true,
+        "description": {
+          "check": true,
+          "pattern": "^[A-Z][a-z]*(?:\\s[a-z]*)*$"
+        },
+        "example": {
+          "check": false
+        },
+        "type": {
+          "check": false
+        }
+      },
+      "query": {
         "check": true,
         "description": {
           "check": true,

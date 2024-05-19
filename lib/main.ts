@@ -35,6 +35,11 @@ export enum ErrorKind {
   ApiPropertyError = 'ApiPropertyError',
 }
 
+enum RequestInputType {
+  RequestBody = 'body',
+  RequestQuery = 'query',
+}
+
 type RunOptions = {
   overwrittenFiles: [string, string][];
 };
@@ -46,7 +51,8 @@ export class SwaggerAnalyzer {
 
   private shouldCheckEndpointInformation: boolean;
   private shouldCheckEndpointApiParam: boolean;
-  private shouldCheckEndpointPayload: boolean;
+  private shouldCheckEndpointRequestBody: boolean;
+  private shouldCheckEndpointRequestQuery: boolean;
 
   constructor(options: Partial<SwaggerAnalyzerOptions>) {
     // Init options
@@ -63,8 +69,11 @@ export class SwaggerAnalyzer {
     this.shouldCheckEndpointApiParam = this.getConfigField(
       "scopes.endpoint.params.check",
     );
-    this.shouldCheckEndpointPayload = this.getConfigField(
-      "scopes.endpoint.payload.check",
+    this.shouldCheckEndpointRequestBody = this.getConfigField(
+      "scopes.endpoint.body.check",
+    );
+    this.shouldCheckEndpointRequestQuery = this.getConfigField(
+        "scopes.endpoint.query.check",
     );
 
     // Init state
@@ -143,8 +152,12 @@ export class SwaggerAnalyzer {
             this.checkEndpointInformations(method);
           }
 
-          if (this.shouldCheckEndpointPayload) {
-            this.checkEndpointPayload(method);
+          if (this.shouldCheckEndpointRequestBody) {
+            this.checkEndpointRequestBody(method);
+          }
+
+          if (this.shouldCheckEndpointRequestQuery) {
+            this.checkEndpointRequestQuery(method);
           }
 
           if (this.shouldCheckEndpointApiParam) {
@@ -168,11 +181,10 @@ export class SwaggerAnalyzer {
 
   checkEndpointInformations(method: MethodDeclaration) {
     const decorators = method.getDecorators();
-
     if (!this.hasMethodApiOperationDecorator(method, decorators)) {
       const errorText: string =
-        "The endpoint method has no ApiOperation tag to describe endpoint informations";
-      this.emit(method, errorText, ErrorKind.ApiInformationError);
+        `'${method.getName()}' is endpoint method but it does not have ApiOperation tag to describe endpoint informations`;
+      this.emit(method.getNameNode(), errorText, ErrorKind.ApiInformationError);
     }
 
     if (this.hasMethodApiOperationDecorator(method, decorators)) {
@@ -180,11 +192,11 @@ export class SwaggerAnalyzer {
     }
   }
 
-  checkEndpointPayload(endpointMethod: MethodDeclaration) {
+  checkEndpointRequestBody(endpointMethod: MethodDeclaration) {
     const payloadParametersOfMethod = endpointMethod.getParameters().filter(
       (parameter) => {
         if (
-          this.hasBodyOrQueryDecorator(parameter) &&
+          this.paramHasGivenDecorator(parameter, "Body") &&
           this.isComplexParam(parameter) && this.hasClassType(parameter)
         ) {
           return parameter;
@@ -192,7 +204,23 @@ export class SwaggerAnalyzer {
       },
     );
     payloadParametersOfMethod.map((payloadParam) =>
-      this.checkMethodParam(payloadParam)
+      this.checkMethodParam(payloadParam, RequestInputType.RequestBody)
+    );
+  }
+
+  checkEndpointRequestQuery(endpointMethod: MethodDeclaration) {
+    const payloadParametersOfMethod = endpointMethod.getParameters().filter(
+        (parameter) => {
+          if (
+              this.paramHasGivenDecorator(parameter, "Query") &&
+              this.isComplexParam(parameter) && this.hasClassType(parameter)
+          ) {
+            return parameter;
+          }
+        },
+    );
+    payloadParametersOfMethod.map((payloadParam) =>
+        this.checkMethodParam(payloadParam, RequestInputType.RequestQuery)
     );
   }
 
@@ -386,10 +414,9 @@ export class SwaggerAnalyzer {
 
   // * Parameter operations
 
-  hasBodyOrQueryDecorator(param: ParameterDeclaration) {
+  paramHasGivenDecorator(param: ParameterDeclaration, decoratorName: string) {
     if (
-      Node.isDecorator(param.getDecorator("Body")) ||
-      Node.isDecorator(param.getDecorator("Query"))
+      Node.isDecorator(param.getDecorator(decoratorName))
     ) {
       return true;
     }
@@ -421,12 +448,12 @@ export class SwaggerAnalyzer {
 
   // * Method operations
 
-  checkMethodParam(methodParam: ParameterDeclaration) {
+  checkMethodParam(methodParam: ParameterDeclaration, requestInputType: RequestInputType) {
     const propertiesOfMethodParam = this.getPropertiesOfType(
       methodParam.getType(),
     );
     propertiesOfMethodParam?.map((property) => {
-      this.checkProperty(property);
+      this.checkProperty(property, requestInputType);
     });
   }
 
@@ -578,7 +605,7 @@ export class SwaggerAnalyzer {
     return decorator;
   }
 
-  checkProperty(property: Symbol) {
+  checkProperty(property: Symbol, requestInputType: RequestInputType) {
     const propertyDeclaration = this.getPropertyDeclarationOfProperty(property);
 
     const doesFieldIsClassProperty = propertyDeclaration !== undefined;
@@ -593,13 +620,13 @@ export class SwaggerAnalyzer {
       const propertiesOfProperty = this.getPropertiesOfType(
         propertyDeclaration.getType(),
       );
-      propertiesOfProperty?.map((property) => this.checkProperty(property));
+      propertiesOfProperty?.map((property) => this.checkProperty(property, requestInputType));
     }
 
-    this.checkApiPropertyDecoratorOfProperty(property);
+    this.checkApiPropertyDecoratorOfProperty(property, requestInputType);
   }
 
-  checkApiPropertyDecoratorOfProperty(property: Symbol) {
+  checkApiPropertyDecoratorOfProperty(property: Symbol, requestInputType: RequestInputType) {
     const propertyDeclaration = this.getPropertyDeclarationOfProperty(property);
     const apiPropertyDecorator = this.getDecoratorOfProperty(
       property,
@@ -620,20 +647,22 @@ export class SwaggerAnalyzer {
     this.checkApiPropertyDecoratorValuesOfProperty(
       property,
       apiPropertyDecorator,
+        requestInputType
     );
   }
 
   checkApiPropertyDecoratorValuesOfProperty(
     property: Symbol,
     apiPropertyDecorator: Decorator,
+    requestInputType: RequestInputType
   ) {
     const checkDesc = this.getConfigField(
-      "scopes.endpoint.payload.description.check",
+      `scopes.endpoint.${requestInputType}.description.check`,
     );
     const checkExample = this.getConfigField(
-      "scopes.endpoint.payload.example.check",
+      `scopes.endpoint.${requestInputType}.example.check`,
     );
-    const checkType = this.getConfigField("scopes.endpoint.payload.type.check");
+    const checkType = this.getConfigField(`scopes.endpoint.${requestInputType}.type.check`);
 
     const decoratorProperties = this.getPropertiesOfDecorator(
       apiPropertyDecorator,
@@ -644,6 +673,7 @@ export class SwaggerAnalyzer {
         decoratorProperties["description"],
         property,
         apiPropertyDecorator,
+          requestInputType
       );
     }
 
@@ -668,6 +698,7 @@ export class SwaggerAnalyzer {
     description: any,
     field: Symbol,
     decorator: Decorator,
+    requestInputType: RequestInputType
   ) {
     if (this.isFieldOfDecoratorNull("description", decorator)) {
       const errorText: string =
@@ -677,7 +708,7 @@ export class SwaggerAnalyzer {
     }
 
     const pattern = this.getConfigField(
-      "scopes.endpoint.payload.description.pattern",
+      `scopes.endpoint.${requestInputType}.description.pattern`,
     );
 
     if (
