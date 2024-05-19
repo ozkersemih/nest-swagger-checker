@@ -25,10 +25,6 @@ export type Error = {
 };
 
 type SwaggerAnalyzerOptions = {
-  checkEndpointInformation: boolean;
-  checkEndpointPayload: boolean;
-  checkEndpointApiParam: boolean;
-
   fileIncludePattern: string;
   interactive: boolean;
 };
@@ -48,6 +44,10 @@ export class SwaggerAnalyzer {
   state: Record<string, Error[]>;
   project: Project;
 
+  private shouldCheckEndpointInformation: boolean;
+  private shouldCheckEndpointApiParam: boolean;
+  private shouldCheckEndpointPayload: boolean;
+
   constructor(options: Partial<SwaggerAnalyzerOptions>) {
     // Init options
     this.options = options;
@@ -57,13 +57,13 @@ export class SwaggerAnalyzer {
       }`;
     }
 
-    this.options.checkEndpointInformation = this.getConfigField(
-      "scopes.endpoint.description.check",
+    this.shouldCheckEndpointInformation = this.getConfigField(
+      "scopes.endpoint.information.check",
     );
-    this.options.checkEndpointApiParam = this.getConfigField(
+    this.shouldCheckEndpointApiParam = this.getConfigField(
       "scopes.endpoint.params.check",
     );
-    this.options.checkEndpointPayload = this.getConfigField(
+    this.shouldCheckEndpointPayload = this.getConfigField(
       "scopes.endpoint.payload.check",
     );
 
@@ -86,7 +86,6 @@ export class SwaggerAnalyzer {
   CONFIG = R.mergeDeepRight(this.internalConfig, this.externalConfig);
 
   getConfigField(configPath: string) {
-    console.log('CONFIG',this.CONFIG);
     return this.getObjectOfJson(this.CONFIG, configPath, "");
   }
 
@@ -140,15 +139,15 @@ export class SwaggerAnalyzer {
     controllerFiles.forEach((file) => {
       file.getClasses().forEach((clazz) => {
         clazz.getMethods().forEach((method) => {
-          if (this.options.checkEndpointInformation) {
+          if (this.shouldCheckEndpointInformation) {
             this.checkEndpointInformations(method);
           }
 
-          if (this.options.checkEndpointPayload) {
+          if (this.shouldCheckEndpointPayload) {
             this.checkEndpointPayload(method);
           }
 
-          if (this.options.checkEndpointApiParam) {
+          if (this.shouldCheckEndpointApiParam) {
             this.checkEndpointParam(method);
           }
 
@@ -213,16 +212,26 @@ export class SwaggerAnalyzer {
   checkInformationProps(method: MethodDeclaration) {
     const apiOperationDec = method.getDecorator("ApiOperation");
 
-    this.checkSummary(apiOperationDec);
-    this.checkDescription(apiOperationDec);
+    if (this.getConfigField("scopes.endpoint.information.summary.check")){
+      this.checkSummary(apiOperationDec);
+    }
+    if (this.getConfigField("scopes.endpoint.information.summary.description")){
+      this.checkDescription(apiOperationDec);
+    }
   }
 
   checkSummary(apiOperationDec: Decorator) {
+    if (this.isFieldOfDecoratorNull("summary",apiOperationDec)){
+      const errorText = "Endpoint does not have summary text in ApiOperation decorator";
+      this.emit(apiOperationDec, errorText, ErrorKind.ApiInformationError);
+      return;
+    }
+
     const shouldCheckSummaryEmptiness = this.getConfigField(
-      "scopes.endpoint.summary.checkEmpty",
+      "scopes.endpoint.information.summary.checkEmpty",
     );
     const shouldCheckSummaryPattern =
-      this.getConfigField("scopes.endpoint.summary.pattern") ? true : false;
+      this.getConfigField("scopes.endpoint.information.summary.pattern") ? true : false;
 
     if (
       shouldCheckSummaryEmptiness &&
@@ -230,11 +239,12 @@ export class SwaggerAnalyzer {
     ) {
       const errorText = "Summary of endpoint is empty";
       this.emit(apiOperationDec, errorText, ErrorKind.ApiInformationError);
+      return;
     }
 
     if (shouldCheckSummaryPattern) {
       const patternRegex = new RegExp(
-        `${this.getConfigField("scopes.endpoint.summary.pattern")}`,
+        `${this.getConfigField("scopes.endpoint.information.summary.pattern")}`,
       );
       if (
         !this.isFieldOfDecoratorMatch("summary", apiOperationDec, patternRegex)
@@ -247,11 +257,17 @@ export class SwaggerAnalyzer {
   }
 
   checkDescription(apiOperationDec: Decorator) {
+    if (this.isFieldOfDecoratorNull("description",apiOperationDec)){
+      const errorText = "Endpoint does not have description text in ApiOperation decorator";
+      this.emit(apiOperationDec, errorText, ErrorKind.ApiInformationError);
+      return;
+    }
+
     const shouldCheckDescriptionEmptiness = this.getConfigField(
-      "scopes.endpoint.description.checkEmpty",
+      "scopes.endpoint.information.description.checkEmpty",
     );
     const shouldCheckDescPattern =
-      this.getConfigField("scopes.endpoint.description.pattern") ? true : false;
+      this.getConfigField("scopes.endpoint.information.description.pattern") ? true : false;
 
     if (
       shouldCheckDescriptionEmptiness &&
@@ -259,11 +275,12 @@ export class SwaggerAnalyzer {
     ) {
       const errorText: string = "Description of endpoint is empty";
       this.emit(apiOperationDec, errorText, ErrorKind.ApiInformationError);
+      return;
     }
 
     if (shouldCheckDescPattern) {
       const patternRegex = new RegExp(
-        `${this.getConfigField("scopes.endpoint.description.pattern")}`,
+        `${this.getConfigField("scopes.endpoint.information.description.pattern")}`,
       );
       if (
         !this.isFieldOfDecoratorMatch(

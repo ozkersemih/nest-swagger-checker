@@ -4,15 +4,18 @@
       "pathPattern": "src/**/*.ts"
     },
     "endpoint": {
-      "summary": {
+      "information": {
         "check": true,
-        "checkEmpty": true,
-        "pattern": null
-      },
-      "description": {
-        "check": true,
-        "checkEmpty": true,
-        "pattern": null
+        "summary": {
+          "check": true,
+          "checkEmpty": true,
+          "pattern": null
+        },
+        "description": {
+          "check": true,
+          "checkEmpty": true,
+          "pattern": null
+        }
       },
       "payload": {
         "check": true,
