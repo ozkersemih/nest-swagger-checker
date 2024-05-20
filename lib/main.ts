@@ -464,14 +464,14 @@ export class SwaggerAnalyzer {
     if (!this.hasMethodApiParamDecorator(method)) {
       const errorText: string =
         `'${method.getName()}' method does not have ApiParam decorator but it has parameter with @Param decorator`;
-      this.emit(method, errorText, ErrorKind.ApiParamError);
+      this.emit(method.getNameNode(), errorText, ErrorKind.ApiParamError);
       return;
     }
 
     if (!this.hasMethodApiParamDecoratorForApiParam(method, apiParamOfMethod)) {
       const errorText: string =
         `'${method.getName()}' method does not have ApiParam decorator that matched with '${apiParamOfMethod.getName()}' param`;
-      this.emit(method, errorText, ErrorKind.ApiParamError);
+      this.emit(apiParamOfMethod.getNameNode(), errorText, ErrorKind.ApiParamError);
       return;
     }
 
