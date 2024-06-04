@@ -243,7 +243,7 @@ export class SwaggerAnalyzer {
     if (this.getConfigField("scopes.endpoint.information.summary.check")){
       this.checkSummary(apiOperationDec);
     }
-    if (this.getConfigField("scopes.endpoint.information.summary.description")){
+    if (this.getConfigField("scopes.endpoint.information.description")){
       this.checkDescription(apiOperationDec);
     }
   }
