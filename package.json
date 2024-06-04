@@ -1,6 +1,6 @@
 {
   "name": "nest-swagger-checker",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Swagger checker for NestJS",
   "main": "./dist/main.js",
   "exports": "./dist/main.js",
